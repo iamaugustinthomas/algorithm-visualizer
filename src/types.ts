@@ -4,7 +4,9 @@ export type ElementState =
   | 'comparing' 
   | 'shifting' 
   | 'sorted' 
-  | 'placed';
+  | 'placed'
+  | 'subarray'
+  | 'merging';
 
 export interface ArrayElement {
   id: string; // unique identifier for key tracking during animation
@@ -12,19 +14,38 @@ export interface ArrayElement {
   state: ElementState;
 }
 
-export type AlgorithmId = 'insertion' | 'selection' | 'bubble';
+export type AlgorithmId = 'insertion' | 'selection' | 'bubble' | 'merge';
+
+export interface AuxBufferItem {
+  id: string;
+  value: number;
+  active?: boolean;
+  copied?: boolean;
+}
 
 export interface AlgorithmStep {
   array: ArrayElement[];
   line: number; // 1-indexed pseudocode line number (0 means no line)
+  procedure?: string; // Procedure name e.g. 'MERGE-SORT' or 'MERGE'
   description: string;
   variables: Record<string, string | number | boolean | null | undefined>;
   indices: {
     j?: number; // 1-based or 0-based for UI display
     i?: number;
+    k?: number;
+    p?: number;
+    q?: number;
+    r?: number;
     keyIndex?: number;
     comparingIndex?: number;
     sortedUpTo?: number; // elements <= this index are sorted
+    subrange?: { p: number; q?: number; r: number }; // 1-based p..r
+  };
+  auxArrays?: {
+    L?: AuxBufferItem[];
+    R?: AuxBufferItem[];
+    activeL?: number; // active index in L (0-based)
+    activeR?: number; // active index in R (0-based)
   };
 }
 
@@ -32,6 +53,7 @@ export interface PseudocodeLine {
   lineNum: number;
   code: string;
   comment?: string;
+  procedure?: string; // e.g. 'MERGE-SORT' or 'MERGE'
 }
 
 export interface AlgorithmInfo {

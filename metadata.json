@@ -1,6 +1,6 @@
 {
   "name": "Algorithm Visualizer",
-  "description": "An interactive step-by-step algorithm visualizer featuring Insertion Sort with line-by-line pseudocode execution, variable inspection, custom data generator, and animation speed controls.",
+  "description": "Interactive step-by-step algorithm visualizer and CLRS pseudocode engine featuring Insertion Sort, Merge Sort, and more with live variable tracking and auxiliary buffer rendering.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

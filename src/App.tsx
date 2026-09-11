@@ -51,6 +51,9 @@ export default function App() {
       } else if (currentStep.indices.keyIndex !== undefined && currentStep.array[currentStep.indices.keyIndex]) {
         const val = currentStep.array[currentStep.indices.keyIndex].value;
         soundEngine.playNote(val);
+      } else if (currentStep.indices.k !== undefined && currentStep.array[currentStep.indices.k - 1]) {
+        const val = currentStep.array[currentStep.indices.k - 1].value;
+        soundEngine.playNote(val);
       }
     }
 
@@ -211,6 +214,7 @@ export default function App() {
                 viewMode={viewMode}
                 indices={currentStep.indices}
                 keyValue={currentStep.variables.key}
+                auxArrays={currentStep.auxArrays}
               />
 
               <Controls
@@ -234,6 +238,7 @@ export default function App() {
                   algorithmName={currentAlgoInfo.name}
                   lines={currentAlgoInfo.pseudocode}
                   activeLine={currentStep.line}
+                  procedure={currentStep.procedure}
                   currentDescription={currentStep.description}
                 />
               </div>
@@ -251,6 +256,7 @@ export default function App() {
                 viewMode={viewMode}
                 indices={currentStep.indices}
                 keyValue={currentStep.variables.key}
+                auxArrays={currentStep.auxArrays}
               />
 
               <Controls
@@ -273,6 +279,7 @@ export default function App() {
                   algorithmName={currentAlgoInfo.name}
                   lines={currentAlgoInfo.pseudocode}
                   activeLine={currentStep.line}
+                  procedure={currentStep.procedure}
                   currentDescription={currentStep.description}
                 />
               </div>
@@ -300,7 +307,7 @@ export default function App() {
             <AlgorithmInfo info={currentAlgoInfo} />
           </div>
           <div className="lg:col-span-1">
-            <InteractiveQuiz />
+            <InteractiveQuiz algorithmId={selectedAlgorithm} />
           </div>
         </section>
       </main>

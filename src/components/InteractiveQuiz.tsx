@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HelpCircle, CheckCircle, XCircle, Award } from 'lucide-react';
+import { AlgorithmId } from '../types';
 
 interface Question {
   question: string;
@@ -13,7 +14,7 @@ const INSERTION_SORT_QUESTIONS: Question[] = [
     question: 'In CLRS INSERTION-SORT, what is the initial value of loop index j?',
     options: ['j = 1', 'j = 2', 'j = 0', 'j = A.length'],
     correctIndex: 1,
-    explanation: 'Lines 1 states: "for j = 2 to A.length". Array element A[1] is trivially sorted on its own.',
+    explanation: 'Line 1 states: "for j = 2 to A.length". Array element A[1] is trivially sorted on its own.',
   },
   {
     question: 'What is the best-case time complexity of Insertion Sort and when does it occur?',
@@ -45,13 +46,59 @@ const INSERTION_SORT_QUESTIONS: Question[] = [
   },
 ];
 
-export const InteractiveQuiz: React.FC = () => {
+const MERGE_SORT_QUESTIONS: Question[] = [
+  {
+    question: 'In CLRS MERGE-SORT(A, p, r), what condition terminates recursion in Line 1?',
+    options: ['p == r', 'p >= r', 'p > r', 'r - p <= 1'],
+    correctIndex: 1,
+    explanation: 'Line 1 specifies: "if p >= r return". This covers empty subarrays (p > r) and 1-element subarrays (p == r), which are trivially sorted.',
+  },
+  {
+    question: 'In CLRS MERGE Line 12, why is "if L[i] <= R[j]" used instead of strict inequality "<"?',
+    options: [
+      'To prevent an out-of-bounds error',
+      'To ensure stability by preserving the relative order of equal elements',
+      'Because R[j] cannot equal L[i]',
+      'To minimize the total number of comparisons',
+    ],
+    correctIndex: 1,
+    explanation: 'Using <= ensures that whenever L[i] and R[j] have equal keys, the element from L (which originally appeared earlier) is written first, maintaining stability.',
+  },
+  {
+    question: 'What is the auxiliary space complexity of CLRS Merge Sort?',
+    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'],
+    correctIndex: 2,
+    explanation: 'MERGE allocates temporary buffer arrays L[0 : n_L - 1] and R[0 : n_R - 1] having total length n_L + n_R = n, requiring Θ(n) auxiliary space.',
+  },
+  {
+    question: 'What is the running time of Merge Sort across all cases (best, average, worst)?',
+    options: ['Θ(n²)', 'Θ(n log n)', 'Θ(n)', 'O(log n)'],
+    correctIndex: 1,
+    explanation: 'The divide-and-conquer recurrence T(n) = 2T(n/2) + Θ(n) yields Θ(n log n) in best, average, and worst cases by the Master Theorem.',
+  },
+];
+
+interface InteractiveQuizProps {
+  algorithmId?: AlgorithmId;
+}
+
+export const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ algorithmId = 'insertion' }) => {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
 
-  const currentQ = INSERTION_SORT_QUESTIONS[currentQIndex];
+  const questions = algorithmId === 'merge' ? MERGE_SORT_QUESTIONS : INSERTION_SORT_QUESTIONS;
+  const title = algorithmId === 'merge' ? 'Merge Sort CLRS Quiz' : 'Insertion Sort CLRS Quiz';
+
+  useEffect(() => {
+    setCurrentQIndex(0);
+    setSelectedOpt(null);
+    setScore(0);
+    setShowResult(false);
+  }, [algorithmId]);
+
+  const currentQ = questions[currentQIndex] || questions[0];
 
   const handleSelectOption = (idx: number) => {
     if (selectedOpt !== null) return;
@@ -62,7 +109,7 @@ export const InteractiveQuiz: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentQIndex < INSERTION_SORT_QUESTIONS.length - 1) {
+    if (currentQIndex < questions.length - 1) {
       setCurrentQIndex((prev) => prev + 1);
       setSelectedOpt(null);
     } else {
@@ -82,7 +129,7 @@ export const InteractiveQuiz: React.FC = () => {
       <div className="flex items-center space-x-2 border-b border-slate-800/80 pb-3 mb-4">
         <HelpCircle className="w-5 h-5 text-amber-400" />
         <h3 className="text-base font-bold text-slate-100 font-mono uppercase tracking-wide">
-          Insertion Sort Mini Quiz
+          {title}
         </h3>
       </div>
 
@@ -90,7 +137,7 @@ export const InteractiveQuiz: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-mono text-slate-400">
             <span>
-              Question {currentQIndex + 1} of {INSERTION_SORT_QUESTIONS.length}
+              Question {currentQIndex + 1} of {questions.length}
             </span>
             <span className="text-amber-400 font-bold glow-amber">Score: {score}</span>
           </div>
@@ -120,10 +167,10 @@ export const InteractiveQuiz: React.FC = () => {
                 >
                   <span>{opt}</span>
                   {selectedOpt !== null && isCorrect && (
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
                   )}
                   {selectedOpt !== null && isSelected && !isCorrect && (
-                    <XCircle className="w-4 h-4 text-rose-400" />
+                    <XCircle className="w-4 h-4 text-rose-400 shrink-0 ml-2" />
                   )}
                 </button>
               );
@@ -138,7 +185,7 @@ export const InteractiveQuiz: React.FC = () => {
                 onClick={handleNext}
                 className="mt-2 px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl glow-amber shadow transition-all"
               >
-                {currentQIndex < INSERTION_SORT_QUESTIONS.length - 1 ? 'Next Question →' : 'View Final Score'}
+                {currentQIndex < questions.length - 1 ? 'Next Question →' : 'View Final Score'}
               </button>
             </div>
           )}
@@ -149,7 +196,7 @@ export const InteractiveQuiz: React.FC = () => {
           <h4 className="text-lg font-bold text-slate-100 font-mono">Quiz Completed!</h4>
           <p className="text-sm font-mono text-slate-300">
             You scored <span className="text-amber-400 font-bold text-xl glow-amber">{score}</span> out of{' '}
-            {INSERTION_SORT_QUESTIONS.length}
+            {questions.length}
           </p>
           <button
             onClick={handleRestart}
