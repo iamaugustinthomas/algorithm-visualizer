@@ -9,14 +9,20 @@ import { ArrayControls } from './components/ArrayControls';
 import { AlgorithmInfo } from './components/AlgorithmInfo';
 import { InteractiveQuiz } from './components/InteractiveQuiz';
 import { HelpModal } from './components/HelpModal';
-import { Columns, Rows, Split } from 'lucide-react';
-import { AlgorithmId, AlgorithmStep } from './types';
-import { ALGORITHMS, getAlgorithmSteps } from './algorithms';
+import { Columns, Rows, Split, BookOpen } from 'lucide-react';
+import { AlgorithmId, AlgorithmStep, MergeSortVariant } from './types';
+import {
+  ALGORITHMS,
+  getAlgorithmSteps,
+  CLRS_4TH_MERGE_PSEUDOCODE,
+  CLRS_3RD_MERGE_PSEUDOCODE,
+} from './algorithms';
 import { soundEngine } from './utils/audio';
 
 export default function App() {
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<AlgorithmId>('insertion');
-  const [arrayData, setArrayData] = useState<number[]>([12, 5, 8, 3, 19, 1, 7]);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<AlgorithmId>('merge');
+  const [mergeVariant, setMergeVariant] = useState<MergeSortVariant>('clrs4th');
+  const [arrayData, setArrayData] = useState<number[]>([5, 2, 4, 7, 1, 3, 2, 6]);
   const [viewMode, setViewMode] = useState<'bars' | 'cards'>('bars');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
@@ -30,13 +36,13 @@ export default function App() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Re-generate algorithm execution steps whenever arrayData or selectedAlgorithm changes
+  // Re-generate algorithm execution steps whenever arrayData, selectedAlgorithm, or mergeVariant changes
   useEffect(() => {
-    const newSteps = getAlgorithmSteps(selectedAlgorithm, arrayData);
+    const newSteps = getAlgorithmSteps(selectedAlgorithm, arrayData, mergeVariant);
     setSteps(newSteps);
     setCurrentStepIndex(0);
     setIsPlaying(false);
-  }, [selectedAlgorithm, arrayData]);
+  }, [selectedAlgorithm, arrayData, mergeVariant]);
 
   // Audio & Confetti side-effects on step change
   useEffect(() => {
@@ -144,6 +150,12 @@ export default function App() {
   };
 
   const currentAlgoInfo = ALGORITHMS[selectedAlgorithm];
+  const activePseudocode =
+    selectedAlgorithm === 'merge'
+      ? mergeVariant === 'clrs3rd'
+        ? CLRS_3RD_MERGE_PSEUDOCODE
+        : CLRS_4TH_MERGE_PSEUDOCODE
+      : currentAlgoInfo.pseudocode;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200 relative overflow-x-hidden">
@@ -204,6 +216,45 @@ export default function App() {
           </div>
         </div>
 
+        {/* CLRS Merge Sort Variant Selector */}
+        {selectedAlgorithm === 'merge' && (
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-amber-500/10 via-slate-900/80 to-slate-900/80 border border-amber-500/30 p-3 rounded-2xl backdrop-blur-md">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+              <div>
+                <span className="text-xs font-mono font-bold text-amber-300">CLRS Algorithm Variant:</span>
+                <span className="text-[11px] font-mono text-slate-400 ml-2 hidden sm:inline">
+                  {mergeVariant === 'clrs4th'
+                    ? '4th Edition (Section 2.3: Modern 3-loop MERGE without sentinels)'
+                    : '3rd Edition (Section 2.3: Classic MERGE with ∞ sentinels)'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+              <button
+                onClick={() => setMergeVariant('clrs4th')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  mergeVariant === 'clrs4th'
+                    ? 'bg-amber-500 text-slate-950 font-bold glow-amber'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                CLRS 4th Ed. (No Sentinels)
+              </button>
+              <button
+                onClick={() => setMergeVariant('clrs3rd')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  mergeVariant === 'clrs3rd'
+                    ? 'bg-amber-500 text-slate-950 font-bold glow-amber'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                CLRS 3rd Ed. (Sentinels ∞)
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Layout Switch: Side-by-Side vs Stacked */}
         {layoutMode === 'side-by-side' ? (
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -215,6 +266,7 @@ export default function App() {
                 indices={currentStep.indices}
                 keyValue={currentStep.variables.key}
                 auxArrays={currentStep.auxArrays}
+                callStack={currentStep.callStack}
               />
 
               <Controls
@@ -236,7 +288,7 @@ export default function App() {
               <div className="flex-1">
                 <PseudocodeViewer
                   algorithmName={currentAlgoInfo.name}
-                  lines={currentAlgoInfo.pseudocode}
+                  lines={activePseudocode}
                   activeLine={currentStep.line}
                   procedure={currentStep.procedure}
                   currentDescription={currentStep.description}
@@ -257,6 +309,7 @@ export default function App() {
                 indices={currentStep.indices}
                 keyValue={currentStep.variables.key}
                 auxArrays={currentStep.auxArrays}
+                callStack={currentStep.callStack}
               />
 
               <Controls
@@ -277,7 +330,7 @@ export default function App() {
               <div className="lg:col-span-2">
                 <PseudocodeViewer
                   algorithmName={currentAlgoInfo.name}
-                  lines={currentAlgoInfo.pseudocode}
+                  lines={activePseudocode}
                   activeLine={currentStep.line}
                   procedure={currentStep.procedure}
                   currentDescription={currentStep.description}

@@ -14,13 +14,16 @@ export interface ArrayElement {
   state: ElementState;
 }
 
-export type AlgorithmId = 'insertion' | 'selection' | 'bubble' | 'merge';
+export type AlgorithmId = 'merge' | 'insertion' | 'selection' | 'bubble';
+
+export type MergeSortVariant = 'clrs4th' | 'clrs3rd';
 
 export interface AuxBufferItem {
   id: string;
-  value: number;
+  value: number | string;
   active?: boolean;
   copied?: boolean;
+  isSentinel?: boolean;
 }
 
 export interface AlgorithmStep {
@@ -44,9 +47,10 @@ export interface AlgorithmStep {
   auxArrays?: {
     L?: AuxBufferItem[];
     R?: AuxBufferItem[];
-    activeL?: number; // active index in L (0-based)
-    activeR?: number; // active index in R (0-based)
+    activeL?: number; // active index in L (0-based or 1-based)
+    activeR?: number; // active index in R (0-based or 1-based)
   };
+  callStack?: string[];
 }
 
 export interface PseudocodeLine {

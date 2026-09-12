@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrayElement, AuxBufferItem } from '../types';
-import { Layers } from 'lucide-react';
+import { Layers, GitBranch } from 'lucide-react';
 
 interface VisualizerCanvasProps {
   elements: ArrayElement[];
@@ -25,6 +25,7 @@ interface VisualizerCanvasProps {
     activeL?: number;
     activeR?: number;
   };
+  callStack?: string[];
 }
 
 export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
@@ -33,6 +34,7 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
   indices,
   keyValue,
   auxArrays,
+  callStack,
 }) => {
   const maxValue = Math.max(...elements.map((e) => e.value), 10);
 
@@ -157,16 +159,45 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         </div>
       </div>
 
+      {/* Call Stack Breadcrumb for Divide-and-Conquer Recursion */}
+      {callStack && callStack.length > 0 && (
+        <div className="mb-3 px-3 py-1.5 bg-slate-950/90 border border-slate-800/90 rounded-xl flex items-center gap-2 overflow-x-auto text-xs font-mono z-10 shadow-inner">
+          <span className="text-amber-400 font-bold flex items-center gap-1.5 shrink-0">
+            <GitBranch className="w-3.5 h-3.5 text-amber-400" />
+            Call Stack:
+          </span>
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto py-0.5">
+            {callStack.map((frame, fIdx) => {
+              const isCurrent = fIdx === callStack.length - 1;
+              return (
+                <React.Fragment key={`frame-${fIdx}`}>
+                  {fIdx > 0 && <span className="text-slate-600 font-sans">›</span>}
+                  <span
+                    className={`px-2 py-0.5 rounded text-[11px] whitespace-nowrap transition-all ${
+                      isCurrent
+                        ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 glow-amber'
+                        : 'text-slate-400 bg-slate-900/60 border border-slate-800'
+                    }`}
+                  >
+                    {frame}
+                  </span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Auxiliary Buffers Display for Merge Sort */}
       {hasAux && (
         <div className="mb-4 p-3 bg-slate-950/90 border border-slate-800 rounded-xl shadow-inner z-10 transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-amber-400" />
-              Auxiliary Arrays (CLRS MERGE Line 3)
+              Auxiliary Arrays (CLRS MERGE Buffer)
             </span>
             <span className="text-[10px] font-mono text-slate-400">
-              0-indexed buffers L[0..{(auxArrays?.L?.length ?? 1) - 1}] & R[0..{(auxArrays?.R?.length ?? 1) - 1}]
+              L[0..{(auxArrays?.L?.length ?? 1) - 1}] & R[0..{(auxArrays?.R?.length ?? 1) - 1}]
             </span>
           </div>
 
@@ -189,14 +220,18 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
                       <div
                         key={`L-${idx}-${item.id}`}
                         className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold border transition-all flex flex-col items-center ${
-                          isActive
+                          item.isSentinel
+                            ? 'bg-amber-950/70 border-amber-500/70 text-amber-300 glow-amber'
+                            : isActive
                             ? 'bg-cyan-500/30 border-cyan-400 text-cyan-200 glow-cyan ring-2 ring-cyan-400 scale-105 shadow-md'
                             : item.copied
                             ? 'bg-slate-900/50 border-slate-800/80 text-slate-500 line-through opacity-60'
                             : 'bg-slate-800/90 border-slate-700 text-slate-200'
                         }`}
                       >
-                        <span className="text-[9px] text-slate-400 font-normal">L[{idx}]</span>
+                        <span className="text-[9px] text-slate-400 font-normal">
+                          {item.isSentinel ? 'Sentinel' : `L[${idx}]`}
+                        </span>
                         <span className="text-sm">{item.value}</span>
                       </div>
                     );
@@ -225,14 +260,18 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
                       <div
                         key={`R-${idx}-${item.id}`}
                         className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold border transition-all flex flex-col items-center ${
-                          isActive
+                          item.isSentinel
+                            ? 'bg-amber-950/70 border-amber-500/70 text-amber-300 glow-amber'
+                            : isActive
                             ? 'bg-purple-500/30 border-purple-400 text-purple-200 glow-purple ring-2 ring-purple-400 scale-105 shadow-md'
                             : item.copied
                             ? 'bg-slate-900/50 border-slate-800/80 text-slate-500 line-through opacity-60'
                             : 'bg-slate-800/90 border-slate-700 text-slate-200'
                         }`}
                       >
-                        <span className="text-[9px] text-slate-400 font-normal">R[{idx}]</span>
+                        <span className="text-[9px] text-slate-400 font-normal">
+                          {item.isSentinel ? 'Sentinel' : `R[${idx}]`}
+                        </span>
                         <span className="text-sm">{item.value}</span>
                       </div>
                     );
