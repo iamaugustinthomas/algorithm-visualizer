@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, BarChart3, LayoutGrid, Sparkles, HelpCircle, Columns, Rows } from 'lucide-react';
+import { Volume2, VolumeX, BarChart3, LayoutGrid, Network, Sparkles, HelpCircle, Columns, Rows } from 'lucide-react';
 import { AlgorithmId } from '../types';
 import { ALGORITHMS } from '../algorithms';
 
@@ -8,8 +8,8 @@ interface HeaderProps {
   onSelectAlgorithm: (id: AlgorithmId) => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
-  viewMode: 'bars' | 'cards';
-  onToggleViewMode: (mode: 'bars' | 'cards') => void;
+  viewMode: 'bars' | 'cards' | 'tree';
+  onToggleViewMode: (mode: 'bars' | 'cards' | 'tree') => void;
   onOpenHelp: () => void;
   layoutMode: 'stacked' | 'side-by-side';
   onToggleLayoutMode: (mode: 'stacked' | 'side-by-side') => void;
@@ -121,6 +121,18 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline font-mono">Cards</span>
+            </button>
+            <button
+              onClick={() => onToggleViewMode('tree')}
+              className={`p-1.5 rounded-lg flex items-center space-x-1 transition-all ${
+                viewMode === 'tree'
+                  ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Binary Heap Tree View (CLRS Chapter 6)"
+            >
+              <Network className="w-4 h-4" />
+              <span className="hidden sm:inline font-mono">Heap Tree</span>
             </button>
           </div>
 

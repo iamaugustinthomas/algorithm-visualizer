@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sparkles, BookOpen, Layers, Volume2 } from 'lucide-react';
+import { X, Sparkles, BookOpen, Layers, Volume2, Keyboard } from 'lucide-react';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -78,9 +78,48 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             <ul className="list-disc list-inside space-y-1 text-slate-300">
               <li>Use <strong>Play/Pause</strong> or step arrows to advance line-by-line.</li>
               <li>Drag the <strong>Step Scrubber</strong> slider to jump directly to any step.</li>
-              <li>Toggle between <strong>Bar Chart</strong> and <strong>Animated Cards</strong> view modes.</li>
+              <li>Toggle between <strong>Bar Chart</strong>, <strong>Animated Cards</strong>, and <strong>Heap Tree</strong> view modes.</li>
               <li>Enable <Volume2 className="w-3.5 h-3.5 inline text-amber-400" /> sound effects for audio pitch feedback during comparisons.</li>
             </ul>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 p-3 rounded-lg space-y-2">
+            <h3 className="text-amber-400 font-bold flex items-center space-x-1.5">
+              <Keyboard className="w-4 h-4" />
+              <span>Keyboard Shortcuts</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
+              <div className="flex items-center justify-between bg-slate-900/90 px-2.5 py-1.5 rounded border border-slate-800">
+                <span>Play / Pause</span>
+                <div className="flex gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">Space</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">K</kbd>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-slate-900/90 px-2.5 py-1.5 rounded border border-slate-800">
+                <span>Next Step</span>
+                <div className="flex gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">→</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">L</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">N</kbd>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-slate-900/90 px-2.5 py-1.5 rounded border border-slate-800">
+                <span>Previous Step</span>
+                <div className="flex gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">←</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">J</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">P</kbd>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-slate-900/90 px-2.5 py-1.5 rounded border border-slate-800">
+                <span>Reset to Start</span>
+                <div className="flex gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">R</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">Home</kbd>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

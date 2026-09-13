@@ -23,7 +23,7 @@ export default function App() {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<AlgorithmId>('merge');
   const [mergeVariant, setMergeVariant] = useState<MergeSortVariant>('clrs4th');
   const [arrayData, setArrayData] = useState<number[]>([5, 2, 4, 7, 1, 3, 2, 6]);
-  const [viewMode, setViewMode] = useState<'bars' | 'cards'>('bars');
+  const [viewMode, setViewMode] = useState<'bars' | 'cards' | 'tree'>('bars');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [layoutMode, setLayoutMode] = useState<'stacked' | 'side-by-side'>('side-by-side');
@@ -106,29 +106,76 @@ export default function App() {
     };
   }, [isPlaying, speed, handleNextStep]);
 
-  const handleTogglePlay = () => {
+  const handleTogglePlay = useCallback(() => {
     if (currentStepIndex >= steps.length - 1) {
       setCurrentStepIndex(0);
       setIsPlaying(true);
     } else {
       setIsPlaying((prev) => !prev);
     }
-  };
+  }, [currentStepIndex, steps.length]);
 
-  const handleStepBackward = () => {
+  const handleStepBackward = useCallback(() => {
     setIsPlaying(false);
     setCurrentStepIndex((prev) => Math.max(0, prev - 1));
-  };
+  }, []);
 
-  const handleStepForward = () => {
+  const handleStepForward = useCallback(() => {
     setIsPlaying(false);
     handleNextStep();
-  };
+  }, [handleNextStep]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setIsPlaying(false);
     setCurrentStepIndex(0);
-  };
+  }, []);
+
+  // Global Keyboard Shortcuts (Space/K: Play/Pause, ArrowRight/L/N: Next, ArrowLeft/J/P: Prev, R/Home: Reset)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Do not trigger shortcuts when typing in inputs or textareas
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.code === 'Space' || e.key === ' ' || e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        handleTogglePlay();
+      } else if (
+        e.key === 'ArrowRight' ||
+        e.key === 'l' ||
+        e.key === 'L' ||
+        e.key === 'n' ||
+        e.key === 'N'
+      ) {
+        e.preventDefault();
+        handleStepForward();
+      } else if (
+        e.key === 'ArrowLeft' ||
+        e.key === 'j' ||
+        e.key === 'J' ||
+        e.key === 'p' ||
+        e.key === 'P'
+      ) {
+        e.preventDefault();
+        handleStepBackward();
+      } else if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
+        e.preventDefault();
+        handleReset();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleTogglePlay, handleStepForward, handleStepBackward, handleReset]);
 
   const handleSeek = (stepIdx: number) => {
     setIsPlaying(false);
@@ -292,6 +339,9 @@ export default function App() {
                   activeLine={currentStep.line}
                   procedure={currentStep.procedure}
                   currentDescription={currentStep.description}
+                  indices={currentStep.indices}
+                  variables={currentStep.variables}
+                  arrayLength={currentStep.array.length}
                 />
               </div>
               <div>
@@ -334,6 +384,9 @@ export default function App() {
                   activeLine={currentStep.line}
                   procedure={currentStep.procedure}
                   currentDescription={currentStep.description}
+                  indices={currentStep.indices}
+                  variables={currentStep.variables}
+                  arrayLength={currentStep.array.length}
                 />
               </div>
 

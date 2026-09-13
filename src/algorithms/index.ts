@@ -3,6 +3,33 @@ import { generateInsertionSortSteps } from './insertionSort';
 import { generateBubbleSortSteps } from './bubbleSort';
 import { generateSelectionSortSteps } from './selectionSort';
 import { generateMergeSortSteps } from './mergeSort';
+import { generateHeapSortSteps } from './heapSort';
+
+export const CLRS_4TH_HEAPSORT_PSEUDOCODE: PseudocodeLine[] = [
+  // HEAPSORT(A)
+  { lineNum: 1, procedure: 'HEAPSORT', code: 'BUILD-MAX-HEAP(A)' },
+  { lineNum: 2, procedure: 'HEAPSORT', code: 'for i = A.length downto 2' },
+  { lineNum: 3, procedure: 'HEAPSORT', code: '    exchange A[1] with A[i]' },
+  { lineNum: 4, procedure: 'HEAPSORT', code: '    A.heap-size = A.heap-size - 1' },
+  { lineNum: 5, procedure: 'HEAPSORT', code: '    MAX-HEAPIFY(A, 1)' },
+
+  // BUILD-MAX-HEAP(A)
+  { lineNum: 1, procedure: 'BUILD-MAX-HEAP', code: 'A.heap-size = A.length' },
+  { lineNum: 2, procedure: 'BUILD-MAX-HEAP', code: 'for i = ⌊A.length / 2⌋ downto 1' },
+  { lineNum: 3, procedure: 'BUILD-MAX-HEAP', code: '    MAX-HEAPIFY(A, i)' },
+
+  // MAX-HEAPIFY(A, i)
+  { lineNum: 1, procedure: 'MAX-HEAPIFY', code: 'l = LEFT(i)                                // 2 · i' },
+  { lineNum: 2, procedure: 'MAX-HEAPIFY', code: 'r = RIGHT(i)                               // 2 · i + 1' },
+  { lineNum: 3, procedure: 'MAX-HEAPIFY', code: 'if l <= A.heap-size and A[l] > A[i]' },
+  { lineNum: 4, procedure: 'MAX-HEAPIFY', code: '    largest = l' },
+  { lineNum: 5, procedure: 'MAX-HEAPIFY', code: 'else largest = i' },
+  { lineNum: 6, procedure: 'MAX-HEAPIFY', code: 'if r <= A.heap-size and A[r] > A[largest]' },
+  { lineNum: 7, procedure: 'MAX-HEAPIFY', code: '    largest = r' },
+  { lineNum: 8, procedure: 'MAX-HEAPIFY', code: 'if largest != i' },
+  { lineNum: 9, procedure: 'MAX-HEAPIFY', code: '    exchange A[i] with A[largest]' },
+  { lineNum: 10, procedure: 'MAX-HEAPIFY', code: '    MAX-HEAPIFY(A, largest)' },
+];
 
 export const CLRS_4TH_MERGE_PSEUDOCODE: PseudocodeLine[] = [
   // MERGE-SORT(A, p, r)
@@ -338,6 +365,127 @@ void mergeSort(vector<int>& A, int p, int r) {
 }`,
     },
   },
+  heapsort: {
+    id: 'heapsort',
+    name: 'Heapsort',
+    pseudocode: CLRS_4TH_HEAPSORT_PSEUDOCODE,
+    timeComplexity: {
+      best: 'Θ(n log n)',
+      average: 'Θ(n log n)',
+      worst: 'Θ(n log n)',
+    },
+    spaceComplexity: 'Θ(1) in-place',
+    stable: false,
+    inPlace: true,
+    description: `Heapsort is a fundamental comparison sorting algorithm analyzed in Chapter 6 of CLRS. Like merge sort, it runs in guaranteed Θ(n log n) time, but like insertion sort, it sorts in place with Θ(1) auxiliary memory. It models the array as an implicit complete binary tree where node i has left child 2i and right child 2i+1. After constructing a max-heap in linear Θ(n) time via BUILD-MAX-HEAP, it repeatedly exchanges the maximum element at root A[1] with the current heap tail A[i], decrements A.heap-size, and calls MAX-HEAPIFY(A, 1) in O(log n) time.`,
+    codeSnippets: {
+      javascript: `// CLRS 4th Edition Chapter 6: Heapsort (1-indexed semantics)
+function parent(i) { return Math.floor(i / 2); }
+function left(i) { return 2 * i; }
+function right(i) { return 2 * i + 1; }
+
+function maxHeapify(A, i, heapSize) {
+  const l = left(i);
+  const r = right(i);
+  let largest = i;
+  if (l <= heapSize && A[l - 1] > A[i - 1]) {
+    largest = l;
+  }
+  if (r <= heapSize && A[r - 1] > A[largest - 1]) {
+    largest = r;
+  }
+  if (largest !== i) {
+    [A[i - 1], A[largest - 1]] = [A[largest - 1], A[i - 1]];
+    maxHeapify(A, largest, heapSize);
+  }
+}
+
+function buildMaxHeap(A) {
+  let heapSize = A.length;
+  for (let i = Math.floor(A.length / 2); i >= 1; i--) {
+    maxHeapify(A, i, heapSize);
+  }
+  return heapSize;
+}
+
+function heapsort(A) {
+  let heapSize = buildMaxHeap(A);
+  for (let i = A.length; i >= 2; i--) {
+    [A[0], A[i - 1]] = [A[i - 1], A[0]];
+    heapSize = heapSize - 1;
+    maxHeapify(A, 1, heapSize);
+  }
+  return A;
+}`,
+      python: `# CLRS 4th Edition Chapter 6: Heapsort
+def left(i):
+    return 2 * i
+
+def right(i):
+    return 2 * i + 1
+
+def max_heapify(A, i, heap_size):
+    l = left(i)
+    r = right(i)
+    largest = l if (l <= heap_size and A[l - 1] > A[i - 1]) else i
+    if r <= heap_size and A[r - 1] > A[largest - 1]:
+        largest = r
+    if largest != i:
+        A[i - 1], A[largest - 1] = A[largest - 1], A[i - 1]
+        max_heapify(A, largest, heap_size)
+
+def build_max_heap(A):
+    heap_size = len(A)
+    for i in range(len(A) // 2, 0, -1):
+        max_heapify(A, i, heap_size)
+    return heap_size
+
+def heapsort(A):
+    heap_size = build_max_heap(A)
+    for i in range(len(A), 1, -1):
+        A[0], A[i - 1] = A[i - 1], A[0]
+        heap_size -= 1
+        max_heapify(A, 1, heap_size)
+    return A`,
+      cpp: `// CLRS 4th Edition Chapter 6: Heapsort
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+inline int left(int i) { return 2 * i; }
+inline int right(int i) { return 2 * i + 1; }
+
+void maxHeapify(vector<int>& A, int i, int heapSize) {
+    int l = left(i);
+    int r = right(i);
+    int largest = (l <= heapSize && A[l - 1] > A[i - 1]) ? l : i;
+    if (r <= heapSize && A[r - 1] > A[largest - 1]) {
+        largest = r;
+    }
+    if (largest != i) {
+        swap(A[i - 1], A[largest - 1]);
+        maxHeapify(A, largest, heapSize);
+    }
+}
+
+int buildMaxHeap(vector<int>& A) {
+    int heapSize = A.size();
+    for (int i = A.size() / 2; i >= 1; i--) {
+        maxHeapify(A, i, heapSize);
+    }
+    return heapSize;
+}
+
+void heapsort(vector<int>& A) {
+    int heapSize = buildMaxHeap(A);
+    for (int i = A.size(); i >= 2; i--) {
+        swap(A[0], A[i - 1]);
+        heapSize--;
+        maxHeapify(A, 1, heapSize);
+    }
+}`,
+    },
+  },
 };
 
 export function getAlgorithmSteps(
@@ -348,6 +496,8 @@ export function getAlgorithmSteps(
   switch (id) {
     case 'merge':
       return generateMergeSortSteps(values, variant);
+    case 'heapsort':
+      return generateHeapSortSteps(values);
     case 'insertion':
       return generateInsertionSortSteps(values);
     case 'bubble':

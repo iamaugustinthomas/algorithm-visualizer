@@ -78,6 +78,48 @@ const MERGE_SORT_QUESTIONS: Question[] = [
   },
 ];
 
+const HEAPSORT_QUESTIONS: Question[] = [
+  {
+    question: 'In CLRS 4th Edition, for a 1-indexed binary heap, what are the indices of the children of node i?',
+    options: [
+      'LEFT(i) = 2i, RIGHT(i) = 2i + 1',
+      'LEFT(i) = 2i - 1, RIGHT(i) = 2i',
+      'LEFT(i) = i / 2, RIGHT(i) = i / 2 + 1',
+      'LEFT(i) = i + 1, RIGHT(i) = i + 2',
+    ],
+    correctIndex: 0,
+    explanation: 'CLRS Section 6.1 defines LEFT(i) = 2i and RIGHT(i) = 2i + 1, using simple binary left-shift operations.',
+  },
+  {
+    question: 'What is the tight asymptotic running time of BUILD-MAX-HEAP on an n-element array?',
+    options: ['Θ(n log n)', 'Θ(n)', 'Θ(log n)', 'Θ(n²)'],
+    correctIndex: 1,
+    explanation: 'CLRS Section 6.3 proves that although MAX-HEAPIFY is O(log n), most nodes are near the leaves with small heights; the summation bounds total time to linear Θ(n).',
+  },
+  {
+    question: 'In CLRS HEAPSORT Line 2, why does the loop stop at 2 ("for i = A.length downto 2")?',
+    options: [
+      'Because index 1 is reserved for sentinels',
+      'Because when 1 element remains in A[1], it is already in its correct sorted position',
+      'To prevent an array index out-of-bounds exception in MAX-HEAPIFY',
+      'Because A.heap-size cannot equal 1',
+    ],
+    correctIndex: 1,
+    explanation: 'Once n - 1 elements have been extracted to their final positions A[2..n], the remaining element A[1] is the smallest and is trivially sorted.',
+  },
+  {
+    question: 'Is Heapsort an in-place and stable sorting algorithm?',
+    options: [
+      'Both in-place and stable',
+      'In-place (Θ(1) auxiliary space), but NOT stable',
+      'Stable, but requires Θ(n) auxiliary space',
+      'Neither in-place nor stable',
+    ],
+    correctIndex: 1,
+    explanation: 'Heapsort sorts strictly in place with Θ(1) extra space. However, swapping elements between the root and leaves across heap levels disrupts the relative order of identical keys, making it unstable.',
+  },
+];
+
 interface InteractiveQuizProps {
   algorithmId?: AlgorithmId;
 }
@@ -88,8 +130,18 @@ export const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ algorithmId = 
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
 
-  const questions = algorithmId === 'merge' ? MERGE_SORT_QUESTIONS : INSERTION_SORT_QUESTIONS;
-  const title = algorithmId === 'merge' ? 'Merge Sort CLRS Quiz' : 'Insertion Sort CLRS Quiz';
+  const getQuizData = () => {
+    switch (algorithmId) {
+      case 'merge':
+        return { questions: MERGE_SORT_QUESTIONS, title: 'Merge Sort CLRS Quiz' };
+      case 'heapsort':
+        return { questions: HEAPSORT_QUESTIONS, title: 'Heapsort CLRS 4th Ed. Quiz' };
+      default:
+        return { questions: INSERTION_SORT_QUESTIONS, title: 'Insertion Sort CLRS Quiz' };
+    }
+  };
+
+  const { questions, title } = getQuizData();
 
   useEffect(() => {
     setCurrentQIndex(0);

@@ -1,6 +1,6 @@
 {
   "name": "Algorithm Visualizer",
-  "description": "Interactive step-by-step algorithm visualizer and CLRS pseudocode engine featuring Insertion Sort, Merge Sort, and more with live variable tracking and auxiliary buffer rendering.",
+  "description": "Interactive step-by-step algorithm visualizer and CLRS 4th Edition pseudocode engine featuring Insertion Sort, Merge Sort, and Heapsort with live variable tracking, auxiliary buffers, and binary heap tree visualization.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

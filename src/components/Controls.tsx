@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, RotateCcw, FastForward } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, RotateCcw, FastForward, Keyboard } from 'lucide-react';
 
 interface ControlsProps {
   isPlaying: boolean;
@@ -56,8 +56,8 @@ export const Controls: React.FC<ControlsProps> = ({
           {/* Reset */}
           <button
             onClick={onReset}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md"
-            title="Reset to Step 0"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md group relative"
+            title="Reset to Step 0 (Shortcut: R / Home)"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -66,20 +66,24 @@ export const Controls: React.FC<ControlsProps> = ({
           <button
             onClick={onStepBackward}
             disabled={isAtStart}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md"
-            title="Previous Step"
+            className="px-3 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md flex items-center space-x-1.5"
+            title="Previous Step (Shortcut: Left Arrow ← / J / P)"
           >
             <SkipBack className="w-4 h-4" />
+            <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              ←
+            </kbd>
           </button>
 
           {/* Play / Pause */}
           <button
             onClick={onTogglePlay}
-            className={`px-6 py-2.5 rounded-xl font-bold font-mono text-xs uppercase tracking-wider flex items-center space-x-2 transition-all duration-200 ${
+            className={`px-5 sm:px-6 py-2.5 rounded-xl font-bold font-mono text-xs uppercase tracking-wider flex items-center space-x-2 transition-all duration-200 ${
               isPlaying
                 ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 glow-amber'
                 : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 glow-emerald'
             }`}
+            title="Play / Pause (Shortcut: Space / K)"
           >
             {isPlaying ? (
               <>
@@ -92,17 +96,41 @@ export const Controls: React.FC<ControlsProps> = ({
                 <span>{isAtEnd ? 'Replay' : 'Play'}</span>
               </>
             )}
+            <kbd className="text-[9px] font-mono px-1 py-0.5 rounded bg-black/30 text-slate-900 font-bold border border-black/20">
+              Space
+            </kbd>
           </button>
 
           {/* Step Forward */}
           <button
             onClick={onStepForward}
             disabled={isAtEnd}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md"
-            title="Next Step"
+            className="px-3 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 text-slate-300 rounded-xl border border-slate-800 transition-all shadow-md flex items-center space-x-1.5"
+            title="Next Step (Shortcut: Right Arrow → / L / N)"
           >
+            <span className="sr-only sm:not-sr-only sm:text-xs font-mono hidden md:inline">Next</span>
+            <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              →
+            </kbd>
             <SkipForward className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Keyboard Shortcuts Helper Badge on large screens */}
+        <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800/80">
+          <Keyboard className="w-3.5 h-3.5 text-amber-400" />
+          <span>Shortcuts:</span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <kbd className="px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px]">Space</kbd> Play
+          </span>
+          <span className="text-slate-600">•</span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <kbd className="px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px]">←</kbd> Prev
+          </span>
+          <span className="text-slate-600">•</span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <kbd className="px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px]">→</kbd> Next
+          </span>
         </div>
 
         {/* Speed Control */}

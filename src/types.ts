@@ -6,7 +6,10 @@ export type ElementState =
   | 'sorted' 
   | 'placed'
   | 'subarray'
-  | 'merging';
+  | 'merging'
+  | 'heap-root'
+  | 'heap-child'
+  | 'heap-largest';
 
 export interface ArrayElement {
   id: string; // unique identifier for key tracking during animation
@@ -14,7 +17,7 @@ export interface ArrayElement {
   state: ElementState;
 }
 
-export type AlgorithmId = 'merge' | 'insertion' | 'selection' | 'bubble';
+export type AlgorithmId = 'merge' | 'heapsort' | 'insertion' | 'selection' | 'bubble';
 
 export type MergeSortVariant = 'clrs4th' | 'clrs3rd';
 
@@ -26,10 +29,18 @@ export interface AuxBufferItem {
   isSentinel?: boolean;
 }
 
+export interface HeapInfo {
+  heapSize: number;
+  i?: number;
+  l?: number;
+  r?: number;
+  largest?: number;
+}
+
 export interface AlgorithmStep {
   array: ArrayElement[];
   line: number; // 1-indexed pseudocode line number (0 means no line)
-  procedure?: string; // Procedure name e.g. 'MERGE-SORT' or 'MERGE'
+  procedure?: string; // Procedure name e.g. 'HEAPSORT', 'BUILD-MAX-HEAP', 'MAX-HEAPIFY'
   description: string;
   variables: Record<string, string | number | boolean | null | undefined>;
   indices: {
@@ -39,11 +50,15 @@ export interface AlgorithmStep {
     p?: number;
     q?: number;
     r?: number;
+    l?: number;
+    largest?: number;
+    heapSize?: number;
     keyIndex?: number;
     comparingIndex?: number;
     sortedUpTo?: number; // elements <= this index are sorted
     subrange?: { p: number; q?: number; r: number }; // 1-based p..r
   };
+  heap?: HeapInfo;
   auxArrays?: {
     L?: AuxBufferItem[];
     R?: AuxBufferItem[];

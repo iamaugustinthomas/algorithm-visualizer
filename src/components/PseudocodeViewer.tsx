@@ -6,9 +6,124 @@ interface PseudocodeViewerProps {
   algorithmName: string;
   lines: PseudocodeLine[];
   activeLine: number; // 1-indexed line number
-  procedure?: string; // e.g. 'MERGE-SORT' | 'MERGE'
+  procedure?: string; // e.g. 'MERGE-SORT' | 'MERGE' | 'HEAPSORT' | 'BUILD-MAX-HEAP' | 'MAX-HEAPIFY'
   currentDescription: string;
+  indices?: {
+    j?: number;
+    i?: number;
+    k?: number;
+    p?: number;
+    q?: number;
+    r?: number;
+    l?: number;
+    largest?: number;
+    heapSize?: number;
+    keyIndex?: number;
+    comparingIndex?: number;
+    sortedUpTo?: number;
+    subrange?: { p: number; q?: number; r: number };
+  };
+  variables?: Record<string, string | number | boolean | null | undefined>;
+  arrayLength?: number;
 }
+
+interface ProcedureDetails {
+  name: string;
+  signature: string;
+  formalArgs: string;
+  passedItemsBadge: string;
+}
+
+const getProcedureDetails = (
+  procName: string,
+  isActive: boolean,
+  indices?: PseudocodeViewerProps['indices'],
+  variables?: PseudocodeViewerProps['variables'],
+  arrayLength?: number
+): ProcedureDetails => {
+  switch (procName) {
+    case 'MAX-HEAPIFY': {
+      const rawI =
+        indices?.i ??
+        (typeof variables?.['i (root)'] === 'number' || typeof variables?.['i (root)'] === 'string'
+          ? variables['i (root)']
+          : variables?.['i']);
+      const passedItems =
+        isActive && rawI !== undefined
+          ? `[Passed: A, i = ${rawI}]`
+          : '[Passed: A, i]';
+      return {
+        name: 'MAX-HEAPIFY',
+        signature: 'MAX-HEAPIFY(A, i)',
+        formalArgs: '(A, i)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'BUILD-MAX-HEAP': {
+      const nVal = arrayLength ?? variables?.['A.length'] ?? variables?.['n'];
+      const passedItems =
+        isActive && nVal !== undefined
+          ? `[Passed: A, n = ${nVal}]`
+          : '[Passed: A]';
+      return {
+        name: 'BUILD-MAX-HEAP',
+        signature: 'BUILD-MAX-HEAP(A)',
+        formalArgs: '(A)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'HEAPSORT': {
+      const nVal = arrayLength ?? variables?.['A.length'] ?? variables?.['n'];
+      const passedItems =
+        isActive && nVal !== undefined
+          ? `[Passed: A, n = ${nVal}]`
+          : '[Passed: A]';
+      return {
+        name: 'HEAPSORT',
+        signature: 'HEAPSORT(A)',
+        formalArgs: '(A)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'MERGE-SORT': {
+      const pVal = indices?.p ?? indices?.subrange?.p ?? variables?.['p'];
+      const rVal = indices?.r ?? indices?.subrange?.r ?? variables?.['r'];
+      const passedItems =
+        isActive && pVal !== undefined && rVal !== undefined
+          ? `[Passed: A, p = ${pVal}, r = ${rVal}]`
+          : '[Passed: A, p, r]';
+      return {
+        name: 'MERGE-SORT',
+        signature: 'MERGE-SORT(A, p, r)',
+        formalArgs: '(A, p, r)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'MERGE': {
+      const pVal = indices?.p ?? indices?.subrange?.p ?? variables?.['p'];
+      const qVal = indices?.q ?? indices?.subrange?.q ?? variables?.['q'];
+      const rVal = indices?.r ?? indices?.subrange?.r ?? variables?.['r'];
+      const passedItems =
+        isActive && pVal !== undefined && qVal !== undefined && rVal !== undefined
+          ? `[Passed: A, p = ${pVal}, q = ${qVal}, r = ${rVal}]`
+          : '[Passed: A, p, q, r]';
+      return {
+        name: 'MERGE',
+        signature: 'MERGE(A, p, q, r)',
+        formalArgs: '(A, p, q, r)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    default: {
+      return {
+        name: procName,
+        signature: `${procName}(A)`,
+        formalArgs: '(A)',
+        passedItemsBadge: '[Passed: A]',
+      };
+    }
+  }
+};
 
 export const PseudocodeViewer: React.FC<PseudocodeViewerProps> = ({
   algorithmName,
@@ -16,6 +131,9 @@ export const PseudocodeViewer: React.FC<PseudocodeViewerProps> = ({
   activeLine,
   procedure,
   currentDescription,
+  indices,
+  variables,
+  arrayLength,
 }) => {
   const activeLineRef = useRef<HTMLDivElement | null>(null);
 
@@ -53,6 +171,23 @@ export const PseudocodeViewer: React.FC<PseudocodeViewerProps> = ({
 
       {/* Code Container */}
       <div className="font-mono text-xs overflow-x-auto overflow-y-auto max-h-[380px] bg-slate-950/90 p-3 rounded-xl border border-slate-800/90 space-y-1 my-1 flex-1 shadow-inner">
+        {/* Single procedure banner if no subroutines */}
+        {!hasMultipleProcedures && (
+          <div className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/60 font-mono font-bold text-xs mb-2 text-slate-300">
+            <div className="flex items-center space-x-2 flex-wrap">
+              <span className="tracking-wide text-amber-300">
+                {algorithmName.toUpperCase().replace(/\s+/g, '-')}(A)
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-800/80 text-slate-400 border border-slate-700">
+                [Passed: A{arrayLength ? `, n = ${arrayLength}` : ''}]
+              </span>
+            </div>
+            <span className="text-[9px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full uppercase tracking-wider">
+              Main Procedure
+            </span>
+          </div>
+        )}
+
         {lines.map((item, idx) => {
           // Check if this line starts a new procedure
           const prevItem = idx > 0 ? lines[idx - 1] : null;
@@ -68,28 +203,39 @@ export const PseudocodeViewer: React.FC<PseudocodeViewerProps> = ({
           return (
             <React.Fragment key={`${item.procedure || 'proc'}-${idx}-${item.lineNum}`}>
               {/* Procedure Subheader */}
-              {isNewProcedure && (
-                <div
-                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border font-mono font-bold text-xs mt-3 mb-1.5 transition-colors ${
-                    procedure === item.procedure
-                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-400'
-                  }`}
-                >
-                  <span className="tracking-wide">
-                    {item.procedure === 'MERGE-SORT'
-                      ? 'MERGE-SORT(A, p, r)'
-                      : item.procedure === 'MERGE'
-                      ? 'MERGE(A, p, q, r)'
-                      : item.procedure}
-                  </span>
-                  {procedure === item.procedure && (
-                    <span className="text-[9px] px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/50 rounded-full uppercase tracking-wider glow-amber animate-pulse">
-                      Active
-                    </span>
-                  )}
-                </div>
-              )}
+              {isNewProcedure && (() => {
+                const isCurrentProc = procedure === item.procedure;
+                const details = getProcedureDetails(item.procedure!, isCurrentProc, indices, variables, arrayLength);
+                return (
+                  <div
+                    className={`flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border font-mono font-bold text-xs mt-3 mb-1.5 transition-all duration-200 ${
+                      isCurrentProc
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-sm'
+                        : 'bg-slate-900/80 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 flex-wrap">
+                      <span className="tracking-wide text-amber-200 font-bold">
+                        {details.signature}
+                      </span>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold border transition-colors ${
+                          isCurrentProc
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 glow-amber'
+                            : 'bg-slate-800/80 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {details.passedItemsBadge}
+                      </span>
+                    </div>
+                    {isCurrentProc && (
+                      <span className="text-[9px] px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/50 rounded-full uppercase tracking-wider glow-amber animate-pulse">
+                        Active Subroutine
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Pseudocode Line */}
               <div
@@ -129,7 +275,9 @@ export const PseudocodeViewer: React.FC<PseudocodeViewerProps> = ({
         <div className="flex items-center space-x-2 text-amber-400 font-mono text-[11px] mb-1">
           <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-ping" />
           <span className="font-bold uppercase tracking-wider text-[10px]">
-            {procedure ? `${procedure} Step Context:` : 'Step Context:'}
+            {procedure
+              ? `${getProcedureDetails(procedure, true, indices, variables, arrayLength).signature} Context:`
+              : 'Step Context:'}
           </span>
         </div>
         <p className="leading-relaxed text-slate-200 font-mono text-[11px]">
