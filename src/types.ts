@@ -9,7 +9,14 @@ export type ElementState =
   | 'merging'
   | 'heap-root'
   | 'heap-child'
-  | 'heap-largest';
+  | 'heap-largest'
+  | 'bst-node'
+  | 'bst-x'
+  | 'bst-y'
+  | 'bst-z'
+  | 'bst-found'
+  | 'bst-visited'
+  | 'bst-transplant';
 
 export interface ArrayElement {
   id: string; // unique identifier for key tracking during animation
@@ -17,9 +24,50 @@ export interface ArrayElement {
   state: ElementState;
 }
 
-export type AlgorithmId = 'merge' | 'heapsort' | 'insertion' | 'selection' | 'bubble';
+export type AlgorithmId = 'bst' | 'heapsort' | 'merge' | 'insertion' | 'selection' | 'bubble';
 
 export type MergeSortVariant = 'clrs4th' | 'clrs3rd';
+
+export type BSTOperationId =
+  | 'insert'
+  | 'search'
+  | 'iterative-search'
+  | 'minimum'
+  | 'maximum'
+  | 'successor'
+  | 'predecessor'
+  | 'inorder'
+  | 'preorder'
+  | 'postorder'
+  | 'delete';
+
+export interface BSTNode {
+  id: string;
+  key: number;
+  left: string | null;
+  right: string | null;
+  p: string | null; // parent pointer in CLRS
+  state?: ElementState;
+  xPercent?: number;
+  yPx?: number;
+  depth?: number;
+}
+
+export interface BSTTreeData {
+  nodes: Record<string, BSTNode>;
+  rootId: string | null;
+  xPointerId?: string | null; // pointer x in CLRS
+  yPointerId?: string | null; // pointer y in CLRS
+  zPointerId?: string | null; // pointer z in CLRS
+  targetKey?: number;
+  traversalOutput?: number[];
+  activeOperation: BSTOperationId;
+  transplantInfo?: {
+    uId: string;
+    vId: string | null;
+  };
+  statusMessage?: string;
+}
 
 export interface AuxBufferItem {
   id: string;
@@ -40,7 +88,7 @@ export interface HeapInfo {
 export interface AlgorithmStep {
   array: ArrayElement[];
   line: number; // 1-indexed pseudocode line number (0 means no line)
-  procedure?: string; // Procedure name e.g. 'HEAPSORT', 'BUILD-MAX-HEAP', 'MAX-HEAPIFY'
+  procedure?: string; // Procedure name e.g. 'HEAPSORT', 'BUILD-MAX-HEAP', 'TREE-INSERT', etc.
   description: string;
   variables: Record<string, string | number | boolean | null | undefined>;
   indices: {
@@ -59,6 +107,7 @@ export interface AlgorithmStep {
     subrange?: { p: number; q?: number; r: number }; // 1-based p..r
   };
   heap?: HeapInfo;
+  bst?: BSTTreeData;
   auxArrays?: {
     L?: AuxBufferItem[];
     R?: AuxBufferItem[];

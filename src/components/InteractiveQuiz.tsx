@@ -120,6 +120,54 @@ const HEAPSORT_QUESTIONS: Question[] = [
   },
 ];
 
+const BST_QUESTIONS: Question[] = [
+  {
+    question: 'What is the Binary-Search-Tree Property defined in CLRS Section 12.1?',
+    options: [
+      'y in left subtree => y.key <= x.key, and y in right subtree => y.key >= x.key',
+      'y in left subtree => y.key >= x.key, and y in right subtree => y.key <= x.key',
+      'The tree must always be balanced such that height h = O(lg n)',
+      'Every node must have exactly 2 children',
+    ],
+    correctIndex: 0,
+    explanation: 'CLRS Section 12.1: Let x be a node in a BST. If y is in the left subtree of x, then y.key <= x.key. If y is in the right subtree of x, then y.key >= x.key.',
+  },
+  {
+    question: 'What is the running time of INORDER-TREE-WALK on a binary search tree with n nodes?',
+    options: ['Θ(lg n)', 'Θ(n)', 'Θ(n lg n)', 'Θ(h) where h is height'],
+    correctIndex: 1,
+    explanation: 'CLRS Theorem 12.1 proves that INORDER-TREE-WALK visits each of the n nodes exactly once, taking Θ(n) time.',
+  },
+  {
+    question: 'In CLRS TREE-SUCCESSOR(x), if node x has a non-empty right subtree, where is its successor?',
+    options: [
+      'The maximum node in x\'s right subtree: TREE-MAXIMUM(x.right)',
+      'The minimum node in x\'s right subtree: TREE-MINIMUM(x.right)',
+      'The parent node x.p',
+      'The root of the tree T.root',
+    ],
+    correctIndex: 1,
+    explanation: 'Line 2 of TREE-SUCCESSOR: if x.right != NIL, return TREE-MINIMUM(x.right). The smallest key strictly greater than x.key in that subtree is its leftmost leaf.',
+  },
+  {
+    question: 'What is the role of the TRANSPLANT(T, u, v) subroutine in CLRS TREE-DELETE?',
+    options: [
+      'It swaps the keys between nodes u and v without moving pointers',
+      'It replaces the subtree rooted at node u with the subtree rooted at node v, updating parent pointers',
+      'It rotates the tree left around edge (u, v)',
+      'It allocates a new node v on the heap',
+    ],
+    correctIndex: 1,
+    explanation: 'CLRS Section 12.3: TRANSPLANT(T, u, v) replaces subtree u with subtree v by updating u.p\'s child pointer (left or right) and v.p to point to u.p.',
+  },
+  {
+    question: 'What is the worst-case time complexity of TREE-SEARCH, TREE-INSERT, and TREE-DELETE?',
+    options: ['O(lg n)', 'O(1)', 'O(h) = O(n) on an unbalanced skewed tree', 'O(n lg n)'],
+    correctIndex: 2,
+    explanation: 'Each basic dynamic-set operation on a BST runs in O(h) time, where h is the tree height. In the worst case (a linear chain), h = n - 1, yielding O(n) time.',
+  },
+];
+
 interface InteractiveQuizProps {
   algorithmId?: AlgorithmId;
 }
@@ -132,6 +180,8 @@ export const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ algorithmId = 
 
   const getQuizData = () => {
     switch (algorithmId) {
+      case 'bst':
+        return { questions: BST_QUESTIONS, title: 'Binary Search Tree CLRS Ch. 12 Quiz' };
       case 'merge':
         return { questions: MERGE_SORT_QUESTIONS, title: 'Merge Sort CLRS Quiz' };
       case 'heapsort':

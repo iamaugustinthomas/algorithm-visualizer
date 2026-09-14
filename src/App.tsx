@@ -9,13 +9,15 @@ import { ArrayControls } from './components/ArrayControls';
 import { AlgorithmInfo } from './components/AlgorithmInfo';
 import { InteractiveQuiz } from './components/InteractiveQuiz';
 import { HelpModal } from './components/HelpModal';
+import { BSTControls } from './components/BSTControls';
 import { Columns, Rows, Split, BookOpen } from 'lucide-react';
-import { AlgorithmId, AlgorithmStep, MergeSortVariant } from './types';
+import { AlgorithmId, AlgorithmStep, MergeSortVariant, BSTOperationId } from './types';
 import {
   ALGORITHMS,
   getAlgorithmSteps,
   CLRS_4TH_MERGE_PSEUDOCODE,
   CLRS_3RD_MERGE_PSEUDOCODE,
+  getBSTPseudocode,
 } from './algorithms';
 import { soundEngine } from './utils/audio';
 
@@ -28,6 +30,10 @@ export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [layoutMode, setLayoutMode] = useState<'stacked' | 'side-by-side'>('side-by-side');
 
+  // BST specific state (CLRS Chapter 12)
+  const [bstOperation, setBstOperation] = useState<BSTOperationId>('insert');
+  const [bstTargetKey, setBstTargetKey] = useState<number>(13);
+
   // Animation State
   const [steps, setSteps] = useState<AlgorithmStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
@@ -36,13 +42,19 @@ export default function App() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Re-generate algorithm execution steps whenever arrayData, selectedAlgorithm, or mergeVariant changes
+  // Re-generate algorithm execution steps whenever arrayData, selectedAlgorithm, mergeVariant, or BST settings change
   useEffect(() => {
-    const newSteps = getAlgorithmSteps(selectedAlgorithm, arrayData, mergeVariant);
+    const newSteps = getAlgorithmSteps(
+      selectedAlgorithm,
+      arrayData,
+      mergeVariant,
+      bstOperation,
+      bstTargetKey
+    );
     setSteps(newSteps);
     setCurrentStepIndex(0);
     setIsPlaying(false);
-  }, [selectedAlgorithm, arrayData, mergeVariant]);
+  }, [selectedAlgorithm, arrayData, mergeVariant, bstOperation, bstTargetKey]);
 
   // Audio & Confetti side-effects on step change
   useEffect(() => {
@@ -198,11 +210,20 @@ export default function App() {
 
   const currentAlgoInfo = ALGORITHMS[selectedAlgorithm];
   const activePseudocode =
-    selectedAlgorithm === 'merge'
+    selectedAlgorithm === 'bst'
+      ? getBSTPseudocode(bstOperation)
+      : selectedAlgorithm === 'merge'
       ? mergeVariant === 'clrs3rd'
         ? CLRS_3RD_MERGE_PSEUDOCODE
         : CLRS_4TH_MERGE_PSEUDOCODE
       : currentAlgoInfo.pseudocode;
+
+  const handleSelectAlgorithm = (id: AlgorithmId) => {
+    setSelectedAlgorithm(id);
+    if (id === 'bst') {
+      setViewMode('tree');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200 relative overflow-x-hidden">
@@ -214,9 +235,7 @@ export default function App() {
       {/* Header */}
       <Header
         selectedAlgorithm={selectedAlgorithm}
-        onSelectAlgorithm={(id) => {
-          setSelectedAlgorithm(id);
-        }}
+        onSelectAlgorithm={handleSelectAlgorithm}
         soundEnabled={soundEnabled}
         onToggleSound={handleToggleSound}
         viewMode={viewMode}
@@ -262,6 +281,18 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* CLRS Chapter 12 Binary Search Tree Operations Control Panel */}
+        {selectedAlgorithm === 'bst' && (
+          <BSTControls
+            activeOperation={bstOperation}
+            onChangeOperation={(op) => setBstOperation(op)}
+            targetKey={bstTargetKey}
+            onChangeTargetKey={(k) => setBstTargetKey(k)}
+            onSetArray={(arr) => setArrayData(arr)}
+            availableKeys={arrayData}
+          />
+        )}
 
         {/* CLRS Merge Sort Variant Selector */}
         {selectedAlgorithm === 'merge' && (
@@ -314,6 +345,8 @@ export default function App() {
                 keyValue={currentStep.variables.key}
                 auxArrays={currentStep.auxArrays}
                 callStack={currentStep.callStack}
+                bst={currentStep.bst}
+                selectedAlgorithm={selectedAlgorithm}
               />
 
               <Controls
@@ -360,6 +393,8 @@ export default function App() {
                 keyValue={currentStep.variables.key}
                 auxArrays={currentStep.auxArrays}
                 callStack={currentStep.callStack}
+                bst={currentStep.bst}
+                selectedAlgorithm={selectedAlgorithm}
               />
 
               <Controls

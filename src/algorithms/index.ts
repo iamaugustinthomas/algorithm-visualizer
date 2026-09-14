@@ -1,9 +1,35 @@
-import { AlgorithmId, AlgorithmInfo, AlgorithmStep, MergeSortVariant, PseudocodeLine } from '../types';
+import { AlgorithmId, AlgorithmInfo, AlgorithmStep, MergeSortVariant, PseudocodeLine, BSTOperationId } from '../types';
 import { generateInsertionSortSteps } from './insertionSort';
 import { generateBubbleSortSteps } from './bubbleSort';
 import { generateSelectionSortSteps } from './selectionSort';
 import { generateMergeSortSteps } from './mergeSort';
 import { generateHeapSortSteps } from './heapSort';
+import {
+  CLRS_TREE_INSERT_PSEUDOCODE,
+  CLRS_TREE_SEARCH_PSEUDOCODE,
+  CLRS_ITERATIVE_TREE_SEARCH_PSEUDOCODE,
+  CLRS_TREE_MINIMUM_PSEUDOCODE,
+  CLRS_TREE_MAXIMUM_PSEUDOCODE,
+  CLRS_TREE_SUCCESSOR_PSEUDOCODE,
+  CLRS_TREE_PREDECESSOR_PSEUDOCODE,
+  CLRS_TREE_DELETE_PSEUDOCODE,
+  CLRS_INORDER_TREE_WALK_PSEUDOCODE,
+  CLRS_PREORDER_TREE_WALK_PSEUDOCODE,
+  CLRS_POSTORDER_TREE_WALK_PSEUDOCODE,
+  getBSTPseudocode,
+  generateBSTInsertSteps,
+  generateBSTSearchSteps,
+  generateBSTIterativeSearchSteps,
+  generateBSTMinimumSteps,
+  generateBSTMaximumSteps,
+  generateBSTSuccessorSteps,
+  generateBSTPredecessorSteps,
+  generateBSTDeleteSteps,
+  generateBSTWalkSteps,
+  buildBSTStateFromValues,
+} from './binarySearchTree';
+
+export * from './binarySearchTree';
 
 export const CLRS_4TH_HEAPSORT_PSEUDOCODE: PseudocodeLine[] = [
   // HEAPSORT(A)
@@ -486,14 +512,177 @@ void heapsort(vector<int>& A) {
 }`,
     },
   },
+  bst: {
+    id: 'bst',
+    name: 'Binary Search Tree',
+    pseudocode: CLRS_TREE_INSERT_PSEUDOCODE,
+    timeComplexity: {
+      best: 'O(log n)',
+      average: 'Θ(log n)',
+      worst: 'O(n) (skewed)',
+    },
+    spaceComplexity: 'Θ(n)',
+    stable: true,
+    inPlace: false,
+    description: `Binary Search Trees (BST) are fundamental data structures analyzed in Chapter 12 of CLRS. They satisfy the binary-search-tree property: for any node x, keys in x's left subtree are <= x.key, and keys in x's right subtree are >= x.key. In CLRS 4th Edition, all operations are covered: Inorder/Preorder/Postorder tree walks (Θ(n) time), Tree Search, Iterative Search, Minimum, Maximum, Successor, Predecessor (all O(h) where h is tree height), Tree Insert (O(h)), and Tree Delete via the TRANSPLANT subroutine (O(h)).`,
+    codeSnippets: {
+      javascript: `// CLRS 4th Edition Chapter 12: Binary Search Tree
+function treeInsert(T, z) {
+  let y = null;
+  let x = T.root;
+  while (x !== null) {
+    y = x;
+    if (z.key < x.key) x = x.left;
+    else x = x.right;
+  }
+  z.p = y;
+  if (y === null) T.root = z;
+  else if (z.key < y.key) y.left = z;
+  else y.right = z;
+}
+
+function transplant(T, u, v) {
+  if (u.p === null) T.root = v;
+  else if (u === u.p.left) u.p.left = v;
+  else u.p.right = v;
+  if (v !== null) v.p = u.p;
+}
+
+function treeDelete(T, z) {
+  if (z.left === null) transplant(T, z, z.right);
+  else if (z.right === null) transplant(T, z, z.left);
+  else {
+    let y = treeMinimum(z.right);
+    if (y !== z.right) {
+      transplant(T, y, y.right);
+      y.right = z.right;
+      y.right.p = y;
+    }
+    transplant(T, z, y);
+    y.left = z.left;
+    y.left.p = y;
+  }
+}`,
+      python: `# CLRS 4th Edition Chapter 12: Binary Search Tree
+def tree_insert(T, z):
+    y = None
+    x = T.root
+    while x is not None:
+        y = x
+        if z.key < x.key:
+            x = x.left
+        else:
+            x = x.right
+    z.p = y
+    if y is None:
+        T.root = z
+    elif z.key < y.key:
+        y.left = z
+    else:
+        y.right = z
+
+def transplant(T, u, v):
+    if u.p is None:
+        T.root = v
+    elif u == u.p.left:
+        u.p.left = v
+    else:
+        u.p.right = v
+    if v is not None:
+        v.p = u.p
+
+def tree_delete(T, z):
+    if z.left is None:
+        transplant(T, z, z.right)
+    elif z.right is None:
+        transplant(T, z, z.left)
+    else:
+        y = tree_minimum(z.right)
+        if y != z.right:
+            transplant(T, y, y.right)
+            y.right = z.right
+            y.right.p = y
+        transplant(T, z, y)
+        y.left = z.left
+        y.left.p = y`,
+      cpp: `// CLRS 4th Edition Chapter 12: Binary Search Tree
+struct Node {
+    int key;
+    Node* left = nullptr;
+    Node* right = nullptr;
+    Node* p = nullptr;
+};
+
+struct BST {
+    Node* root = nullptr;
+};
+
+void treeInsert(BST& T, Node* z) {
+    Node* y = nullptr;
+    Node* x = T.root;
+    while (x != nullptr) {
+        y = x;
+        if (z->key < x->key) x = x->left;
+        else x = x->right;
+    }
+    z->p = y;
+    if (y == nullptr) T.root = z;
+    else if (z->key < y->key) y->left = z;
+    else y->right = z;
+}
+
+void transplant(BST& T, Node* u, Node* v) {
+    if (u->p == nullptr) T.root = v;
+    else if (u == u->p->left) u->p->left = v;
+    else u->p->right = v;
+    if (v != nullptr) v->p = u->p;
+}`,
+    },
+  },
 };
 
 export function getAlgorithmSteps(
   id: AlgorithmId,
   values: number[],
-  variant: MergeSortVariant = 'clrs4th'
+  variant: MergeSortVariant = 'clrs4th',
+  bstOp: BSTOperationId = 'insert',
+  bstTargetKey?: number
 ): AlgorithmStep[] {
   switch (id) {
+    case 'bst': {
+      if (bstOp === 'insert') {
+        return generateBSTInsertSteps(values);
+      }
+      const tree = buildBSTStateFromValues(values);
+      const defaultTarget = bstTargetKey !== undefined
+        ? bstTargetKey
+        : (values.length > 0 ? values[Math.floor(values.length / 2)] : 15);
+
+      switch (bstOp) {
+        case 'search':
+          return generateBSTSearchSteps(tree, defaultTarget);
+        case 'iterative-search':
+          return generateBSTIterativeSearchSteps(tree, defaultTarget);
+        case 'minimum':
+          return generateBSTMinimumSteps(tree);
+        case 'maximum':
+          return generateBSTMaximumSteps(tree);
+        case 'successor':
+          return generateBSTSuccessorSteps(tree, defaultTarget);
+        case 'predecessor':
+          return generateBSTPredecessorSteps(tree, defaultTarget);
+        case 'delete':
+          return generateBSTDeleteSteps(tree, defaultTarget);
+        case 'inorder':
+          return generateBSTWalkSteps(tree, 'inorder');
+        case 'preorder':
+          return generateBSTWalkSteps(tree, 'preorder');
+        case 'postorder':
+          return generateBSTWalkSteps(tree, 'postorder');
+        default:
+          return generateBSTInsertSteps(values);
+      }
+    }
     case 'merge':
       return generateMergeSortSteps(values, variant);
     case 'heapsort':

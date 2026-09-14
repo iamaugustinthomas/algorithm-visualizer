@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrayElement, AuxBufferItem } from '../types';
+import { ArrayElement, AuxBufferItem, BSTTreeData, BSTNode, AlgorithmId } from '../types';
 import { Layers, GitBranch, Network, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface VisualizerCanvasProps {
@@ -29,6 +29,8 @@ interface VisualizerCanvasProps {
     activeR?: number;
   };
   callStack?: string[];
+  bst?: BSTTreeData;
+  selectedAlgorithm?: AlgorithmId;
 }
 
 export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
@@ -38,6 +40,8 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
   keyValue,
   auxArrays,
   callStack,
+  bst,
+  selectedAlgorithm,
 }) => {
   const [showInlineHeapTree, setShowInlineHeapTree] = useState(true);
   const maxValue = Math.max(...elements.map((e) => e.value), 10);
@@ -61,6 +65,42 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     }
 
     switch (state) {
+      case 'bst-x':
+        return {
+          bar: 'bg-gradient-to-t from-amber-600 via-amber-500 to-amber-300 border-amber-300 ring-2 ring-amber-400 glow-amber z-20',
+          card: 'bg-amber-950/80 border-amber-400 text-amber-200 glow-amber ring-2 ring-amber-400 z-20',
+          badge: 'bg-amber-500/30 text-amber-300 border-amber-400/50',
+        };
+      case 'bst-y':
+        return {
+          bar: 'bg-gradient-to-t from-cyan-600 via-cyan-500 to-cyan-300 border-cyan-300 ring-2 ring-cyan-400 glow-cyan z-20',
+          card: 'bg-cyan-950/80 border-cyan-400 text-cyan-200 glow-cyan ring-2 ring-cyan-400 z-20',
+          badge: 'bg-cyan-500/30 text-cyan-300 border-cyan-400/50',
+        };
+      case 'bst-z':
+        return {
+          bar: 'bg-gradient-to-t from-rose-600 via-rose-500 to-rose-300 border-rose-300 ring-2 ring-rose-400 glow-rose z-20',
+          card: 'bg-rose-950/80 border-rose-400 text-rose-200 glow-rose ring-2 ring-rose-400 z-20',
+          badge: 'bg-rose-500/30 text-rose-300 border-rose-400/50',
+        };
+      case 'bst-found':
+        return {
+          bar: 'bg-gradient-to-t from-emerald-500 via-emerald-400 to-teal-200 border-emerald-300 ring-2 ring-emerald-400 glow-emerald z-20 animate-pulse',
+          card: 'bg-emerald-950/90 border-emerald-400 text-emerald-100 glow-emerald ring-2 ring-emerald-400 z-20 animate-pulse',
+          badge: 'bg-emerald-500/40 text-emerald-200 border-emerald-400/60',
+        };
+      case 'bst-transplant':
+        return {
+          bar: 'bg-gradient-to-t from-purple-600 via-purple-500 to-purple-300 border-purple-300 ring-2 ring-purple-400 glow-purple z-20 animate-pulse',
+          card: 'bg-purple-950/90 border-purple-400 text-purple-100 glow-purple ring-2 ring-purple-400 z-20 animate-pulse',
+          badge: 'bg-purple-500/40 text-purple-200 border-purple-400/60',
+        };
+      case 'bst-visited':
+        return {
+          bar: 'bg-gradient-to-t from-emerald-700 via-emerald-600 to-teal-400 border-emerald-500',
+          card: 'bg-emerald-950/50 border-emerald-600 text-emerald-300',
+          badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-600/40',
+        };
       case 'sorted':
         return {
           bar: 'bg-gradient-to-t from-emerald-600 via-emerald-500 to-emerald-300 border-emerald-400 glow-emerald',
@@ -132,6 +172,7 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
 
   const hasAux = auxArrays && ((auxArrays.L && auxArrays.L.length > 0) || (auxArrays.R && auxArrays.R.length > 0));
   const isHeapMode = indices.heapSize !== undefined;
+  const isBSTMode = selectedAlgorithm === 'bst' || Boolean(bst);
 
   // Render Binary Heap Tree (CLRS Figure 6.1 specification)
   const renderHeapTree = (isFullCanvas: boolean = false) => {
@@ -265,6 +306,145 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     );
   };
 
+  // Render Binary Search Tree (CLRS Chapter 12 specification)
+  const renderBSTTree = (isFullCanvas: boolean = false) => {
+    if (!bst || !bst.rootId || Object.keys(bst.nodes).length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 font-mono text-xs">
+          <GitBranch className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
+          <p>Empty Binary Search Tree (T.root == NIL)</p>
+        </div>
+      );
+    }
+
+    const nodes = bst.nodes;
+    const nodeList = Object.values(nodes) as BSTNode[];
+    const maxDepth = Math.max(...nodeList.map((n) => n.depth || 0), 0);
+    const treeHeight = Math.max(isFullCanvas ? 340 : 250, (maxDepth + 1) * 75 + 50);
+
+    const edges: Array<{
+      from: BSTNode;
+      to: BSTNode;
+      isLeft: boolean;
+    }> = [];
+
+    nodeList.forEach((n) => {
+      if (n.left && nodes[n.left]) {
+        edges.push({ from: n, to: nodes[n.left] as BSTNode, isLeft: true });
+      }
+      if (n.right && nodes[n.right]) {
+        edges.push({ from: n, to: nodes[n.right] as BSTNode, isLeft: false });
+      }
+    });
+
+    return (
+      <div className={`relative w-full overflow-x-auto py-3 flex flex-col justify-center items-center ${isFullCanvas ? 'min-h-[320px]' : ''}`}>
+        <div className="relative w-full max-w-4xl" style={{ height: `${treeHeight}px` }}>
+          {/* SVG Connecting Edges */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+            {edges.map((edge) => {
+              const x1 = `${edge.from.xPercent}%`;
+              const y1 = edge.from.yPx;
+              const x2 = `${edge.to.xPercent}%`;
+              const y2 = edge.to.yPx;
+              const stroke = edge.isLeft ? '#38bdf8' : '#c084fc';
+
+              return (
+                <g key={`edge-${edge.from.id}-${edge.to.id}`}>
+                  <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={stroke}
+                    strokeWidth="2.5"
+                    opacity="0.8"
+                  />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Node Circles */}
+          {nodeList.map((node) => {
+            const isX = bst.xPointerId === node.id;
+            const isY = bst.yPointerId === node.id;
+            const isZ = bst.zPointerId === node.id;
+            const isRoot = bst.rootId === node.id;
+            const isFound = node.state === 'bst-found';
+            const isTransplant = node.state === 'bst-transplant';
+            const isVisited = node.state === 'bst-visited';
+
+            let ringColor = 'border-slate-700 bg-slate-900/90 text-slate-200';
+            let badgeText: string | null = null;
+            let badgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+
+            if (isFound) {
+              ringColor = 'border-emerald-300 bg-emerald-950/95 text-emerald-100 ring-4 ring-emerald-400/80 glow-emerald scale-110';
+              badgeText = 'MATCH / FOUND';
+              badgeColor = 'bg-emerald-500 text-slate-950 font-bold border-emerald-300 animate-bounce';
+            } else if (isTransplant) {
+              ringColor = 'border-purple-300 bg-purple-950/90 text-purple-100 ring-4 ring-purple-400/80 glow-purple scale-110 animate-pulse';
+              badgeText = 'TRANSPLANT';
+              badgeColor = 'bg-purple-500 text-white font-bold border-purple-300';
+            } else if (isX) {
+              ringColor = 'border-amber-400 bg-amber-950/95 text-amber-200 ring-4 ring-amber-400/80 glow-amber scale-105';
+              badgeText = isRoot ? 'x (root)' : 'x (curr)';
+              badgeColor = 'bg-amber-500 text-slate-950 font-bold border-amber-400';
+            } else if (isY) {
+              ringColor = 'border-cyan-400 bg-cyan-950/90 text-cyan-200 ring-4 ring-cyan-400/80 glow-cyan scale-105';
+              badgeText = bst.activeOperation === 'successor' || bst.activeOperation === 'predecessor' ? 'y (succ)' : 'y (parent)';
+              badgeColor = 'bg-cyan-500 text-slate-950 font-bold border-cyan-400';
+            } else if (isZ) {
+              ringColor = 'border-rose-400 bg-rose-950/90 text-rose-200 ring-4 ring-rose-400/80 glow-rose scale-105';
+              badgeText = bst.activeOperation === 'delete' ? 'z (delete)' : 'z (insert)';
+              badgeColor = 'bg-rose-500 text-white font-bold border-rose-400';
+            } else if (isVisited) {
+              ringColor = 'border-emerald-500/60 bg-emerald-950/50 text-emerald-300';
+              badgeText = 'visited';
+              badgeColor = 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40';
+            } else if (isRoot) {
+              badgeText = 'root';
+              badgeColor = 'bg-slate-800 text-amber-300 border-amber-500/40';
+            }
+
+            return (
+              <motion.div
+                key={`bst-node-${node.id}`}
+                layout
+                style={{
+                  position: 'absolute',
+                  left: `${node.xPercent}%`,
+                  top: `${node.yPx}px`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                className="flex flex-col items-center justify-center z-10 select-none group"
+              >
+                {badgeText && (
+                  <span
+                    className={`absolute -top-5 px-1.5 py-0.2 text-[9px] font-mono uppercase tracking-wider rounded border shadow-sm ${badgeColor}`}
+                  >
+                    {badgeText}
+                  </span>
+                )}
+
+                <div
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center font-mono font-bold text-sm shadow-lg transition-all duration-200 ${ringColor}`}
+                >
+                  {node.key}
+                </div>
+
+                <span className="text-[9px] font-mono text-slate-400 mt-0.5 font-semibold">
+                  p: {node.p ? nodes[node.p]?.key : 'NIL'}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="glass-panel border border-slate-800/80 rounded-2xl p-6 shadow-2xl flex flex-col justify-between min-h-[380px] relative overflow-hidden">
       {/* Immersive Background Glows */}
@@ -281,6 +461,23 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
               A.heap-size = {indices.heapSize} / {elements.length}
             </span>
           )}
+          {isBSTMode && bst && (
+            <>
+              <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-full font-bold">
+                BST Nodes: {Object.keys(bst.nodes).length}
+              </span>
+              {bst.rootId && (
+                <span className="px-2.5 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/50 rounded-full font-bold">
+                  T.root = {bst.nodes[bst.rootId]?.key ?? 'NIL'}
+                </span>
+              )}
+              {bst.targetKey !== undefined && (
+                <span className="px-2.5 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/50 rounded-full font-bold animate-pulse">
+                  Target k: {bst.targetKey}
+                </span>
+              )}
+            </>
+          )}
           {keyValue !== undefined && keyValue !== null && keyValue !== '-' && (
             <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-full font-bold glow-amber animate-bounce">
               Active Key: {keyValue}
@@ -292,13 +489,13 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
               {indices.subrange.q ? ` (q=${indices.subrange.q})` : ''}
             </span>
           )}
-          {isHeapMode && viewMode !== 'tree' && (
+          {(isHeapMode || isBSTMode) && viewMode !== 'tree' && (
             <button
               onClick={() => setShowInlineHeapTree((prev) => !prev)}
-              className="flex items-center space-x-1 px-2.5 py-0.5 bg-slate-900 hover:bg-slate-800 text-sky-400 border border-sky-500/40 rounded-full font-bold transition-all text-xs"
+              className="flex items-center space-x-1 px-2.5 py-0.5 bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/40 rounded-full font-bold transition-all text-xs"
             >
-              <Network className="w-3 h-3 text-sky-400" />
-              <span>Tree Diagram</span>
+              <Network className="w-3 h-3 text-amber-400" />
+              <span>{isBSTMode ? 'BST Diagram' : 'Heap Tree Diagram'}</span>
               {showInlineHeapTree ? <ChevronUp className="w-3 h-3 ml-0.5" /> : <ChevronDown className="w-3 h-3 ml-0.5" />}
             </button>
           )}
@@ -327,6 +524,29 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
               <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
                 <span className="text-slate-300">Sorted Tail</span>
+              </div>
+            </>
+          ) : isBSTMode ? (
+            <>
+              <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400" />
+                <span className="text-slate-300">Pointer x</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+                <span className="text-slate-300">Pointer y</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400" />
+                <span className="text-slate-300">Node z</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
+                <span className="text-slate-300">Match / Found</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-sm shadow-purple-400" />
+                <span className="text-slate-300">Transplant</span>
               </div>
             </>
           ) : (
@@ -482,19 +702,23 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         </div>
       )}
 
-      {/* Optional Inline Heap Tree Accordion for Bars and Cards view */}
-      {isHeapMode && viewMode !== 'tree' && showInlineHeapTree && (
+      {/* Optional Inline Heap / BST Tree Accordion for Bars and Cards view */}
+      {(isHeapMode || isBSTMode) && viewMode !== 'tree' && showInlineHeapTree && (
         <div className="mb-3 p-3 bg-slate-950/90 border border-slate-800/90 rounded-xl shadow-inner z-10">
           <div className="flex items-center justify-between mb-1 px-1">
             <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1.5">
               <Network className="w-3.5 h-3.5 text-amber-400" />
-              Binary Max-Heap Tree (CLRS Fig. 6.1: LEFT(i)=2i, RIGHT(i)=2i+1)
+              {isBSTMode
+                ? 'Binary Search Tree (CLRS Chapter 12: BST Property)'
+                : 'Binary Max-Heap Tree (CLRS Fig. 6.1: LEFT(i)=2i, RIGHT(i)=2i+1)'}
             </span>
             <span className="text-[10px] font-mono text-slate-400">
-              Active Heap Nodes: 1..{indices.heapSize ?? elements.length}
+              {isBSTMode
+                ? `BST Nodes: ${Object.keys(bst?.nodes || {}).length}`
+                : `Active Heap Nodes: 1..${indices.heapSize ?? elements.length}`}
             </span>
           </div>
-          {renderHeapTree(false)}
+          {isBSTMode ? renderBSTTree(false) : renderHeapTree(false)}
         </div>
       )}
 
@@ -503,10 +727,31 @@ export const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         <div className="flex-1 flex flex-col justify-center items-center py-2 z-10 min-h-[340px]">
           <div className="w-full text-center mb-1">
             <span className="text-xs font-mono font-bold text-amber-300 bg-slate-950/80 px-3 py-1 rounded-full border border-amber-500/30">
-              Binary Heap Tree Diagram & Array Strip
+              {isBSTMode
+                ? 'Binary Search Tree Structure & Traversal (CLRS Chapter 12)'
+                : 'Binary Heap Tree Diagram & Array Strip'}
             </span>
           </div>
-          {renderHeapTree(true)}
+          {isBSTMode ? renderBSTTree(true) : renderHeapTree(true)}
+
+          {/* Traversal Tape for BST walks */}
+          {isBSTMode && bst?.traversalOutput && bst.traversalOutput.length > 0 && (
+            <div className="mt-3 px-4 py-2 bg-slate-950/90 border border-emerald-500/40 rounded-xl flex items-center gap-2 overflow-x-auto text-xs font-mono shadow-lg max-w-full">
+              <span className="text-emerald-400 font-bold shrink-0">
+                Traversal Output:
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {bst.traversalOutput.map((val, idx) => (
+                  <span
+                    key={`out-${idx}`}
+                    className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 rounded-md font-bold shadow-sm"
+                  >
+                    {val}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Compact Array Representation Strip underneath the tree */}
           <div className="mt-3 flex items-center justify-center gap-1 sm:gap-2 flex-wrap max-w-full px-2">

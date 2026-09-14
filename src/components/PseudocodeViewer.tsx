@@ -114,6 +114,163 @@ const getProcedureDetails = (
         passedItemsBadge: passedItems,
       };
     }
+    case 'TREE-INSERT': {
+      const zKey = variables?.['z.key'] ?? (indices?.keyIndex !== undefined ? `z (key)` : undefined);
+      const passedItems =
+        isActive && zKey !== undefined
+          ? `[Passed: T, z.key = ${zKey}]`
+          : '[Passed: T, z]';
+      return {
+        name: 'TREE-INSERT',
+        signature: 'TREE-INSERT(T, z)',
+        formalArgs: '(T, z)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-SEARCH': {
+      const kVal = variables?.['k (target)'] ?? variables?.['k'] ?? indices?.k;
+      const passedItems =
+        isActive && kVal !== undefined
+          ? `[Passed: x, k = ${kVal}]`
+          : '[Passed: x, k]';
+      return {
+        name: 'TREE-SEARCH',
+        signature: 'TREE-SEARCH(x, k)',
+        formalArgs: '(x, k)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'ITERATIVE-TREE-SEARCH': {
+      const kVal = variables?.['k'] ?? indices?.k;
+      const passedItems =
+        isActive && kVal !== undefined
+          ? `[Passed: x, k = ${kVal}]`
+          : '[Passed: x, k]';
+      return {
+        name: 'ITERATIVE-TREE-SEARCH',
+        signature: 'ITERATIVE-TREE-SEARCH(x, k)',
+        formalArgs: '(x, k)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-MINIMUM': {
+      const xKey = variables?.['x.key'] ?? variables?.['x'];
+      const passedItems =
+        isActive && xKey !== undefined
+          ? `[Passed: x = ${xKey}]`
+          : '[Passed: x]';
+      return {
+        name: 'TREE-MINIMUM',
+        signature: 'TREE-MINIMUM(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-MAXIMUM': {
+      const xKey = variables?.['x.key'] ?? variables?.['x'];
+      const passedItems =
+        isActive && xKey !== undefined
+          ? `[Passed: x = ${xKey}]`
+          : '[Passed: x]';
+      return {
+        name: 'TREE-MAXIMUM',
+        signature: 'TREE-MAXIMUM(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-SUCCESSOR': {
+      const xKey = variables?.['x.key'] ?? variables?.['x'];
+      const passedItems =
+        isActive && xKey !== undefined
+          ? `[Passed: x = ${xKey}]`
+          : '[Passed: x]';
+      return {
+        name: 'TREE-SUCCESSOR',
+        signature: 'TREE-SUCCESSOR(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-PREDECESSOR': {
+      const xKey = variables?.['x.key'] ?? variables?.['x'];
+      const passedItems =
+        isActive && xKey !== undefined
+          ? `[Passed: x = ${xKey}]`
+          : '[Passed: x]';
+      return {
+        name: 'TREE-PREDECESSOR',
+        signature: 'TREE-PREDECESSOR(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TRANSPLANT': {
+      const uKey = variables?.['u.key'] ?? 'u';
+      const vKey = variables?.['v'] ?? 'v';
+      const passedItems =
+        isActive
+          ? `[Passed: T, u = ${uKey}, v = ${vKey}]`
+          : '[Passed: T, u, v]';
+      return {
+        name: 'TRANSPLANT',
+        signature: 'TRANSPLANT(T, u, v)',
+        formalArgs: '(T, u, v)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'TREE-DELETE': {
+      const zKey = variables?.['z.key'] ?? 'z';
+      const passedItems =
+        isActive
+          ? `[Passed: T, z.key = ${zKey}]`
+          : '[Passed: T, z]';
+      return {
+        name: 'TREE-DELETE',
+        signature: 'TREE-DELETE(T, z)',
+        formalArgs: '(T, z)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'INORDER-TREE-WALK': {
+      const xVal = variables?.['x'] ?? variables?.['x.key'];
+      const passedItems =
+        isActive && xVal !== undefined
+          ? `[Passed: x = ${xVal}]`
+          : '[Passed: x]';
+      return {
+        name: 'INORDER-TREE-WALK',
+        signature: 'INORDER-TREE-WALK(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'PREORDER-TREE-WALK': {
+      const xVal = variables?.['x'] ?? variables?.['x.key'];
+      const passedItems =
+        isActive && xVal !== undefined
+          ? `[Passed: x = ${xVal}]`
+          : '[Passed: x]';
+      return {
+        name: 'PREORDER-TREE-WALK',
+        signature: 'PREORDER-TREE-WALK(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
+    case 'POSTORDER-TREE-WALK': {
+      const xVal = variables?.['x'] ?? variables?.['x.key'];
+      const passedItems =
+        isActive && xVal !== undefined
+          ? `[Passed: x = ${xVal}]`
+          : '[Passed: x]';
+      return {
+        name: 'POSTORDER-TREE-WALK',
+        signature: 'POSTORDER-TREE-WALK(x)',
+        formalArgs: '(x)',
+        passedItemsBadge: passedItems,
+      };
+    }
     default: {
       return {
         name: procName,

@@ -129,10 +129,12 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Binary Heap Tree View (CLRS Chapter 6)"
+              title={selectedAlgorithm === 'bst' ? "Binary Search Tree View (CLRS Chapter 12)" : "Binary Heap Tree View (CLRS Chapter 6)"}
             >
               <Network className="w-4 h-4" />
-              <span className="hidden sm:inline font-mono">Heap Tree</span>
+              <span className="hidden sm:inline font-mono">
+                {selectedAlgorithm === 'bst' ? 'BST Tree' : 'Heap Tree'}
+              </span>
             </button>
           </div>
 
